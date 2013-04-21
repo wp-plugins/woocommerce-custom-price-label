@@ -4,7 +4,7 @@ Donate link: http://algoritmika.com/donate/
 Tags: woocommerce,price,label,labeler,labeller,custom price,custom label
 Requires at least: 3.5.1
 Tested up to: 3.5.1
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -44,6 +44,9 @@ You need [WooCommerce Custom Price Label Pro plugin](http://www.algoritmika.com/
 1. Custom price label options are added to product's edit page.
 
 == Changelog ==
+
+= 1.0.1 =
+* Minor bug fixed
 
 = 1.0.0 =
 * Initial Release

@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce Custom Price Label
 Plugin URI: http://www.algoritmika.com/shop/wordpress-woocommerce-custom-price-label-plugin/
 Description: This plugin extends the WooCommerce e-commerce plugin by allowing to create custom price labels for products (like 'Call for Price' etc.).
-Version: 1.0.0
+Version: 1.0.1
 Author: Algoritmika Ltd.
 Author URI: http://www.algoritmika.com
 License: GPLv2 or later
@@ -100,7 +100,7 @@ if ( ! class_exists( 'woo_cpl_plugin' ) ) {
 			<p>Label:&nbsp;<input style="width:250px;" type="text" name="simple_is_custom_pricing_label_text_between" id="simple_is_custom_pricing_label_text_between" disabled />&nbsp;Use this label between regular and sale price?&nbsp;<input class="checkbox" type="checkbox" disabled name="simple_is_custom_pricing_label_between" id="simple_is_custom_pricing_label_between" /></p>
 			<p>Hide this label on:&nbsp;<em>Home page</em>&nbsp;<input class="checkbox" type="checkbox" disabled />&nbsp;<em>Products page</em>&nbsp;<input class="checkbox" type="checkbox" disabled />&nbsp;<em>Single product</em>&nbsp;<input class="checkbox" type="checkbox" disabled /></p>
 			<hr />
-			<p>Label:&nbsp;<input style="width:250px;" type="text" name="simple_is_custom_pricing_label_text_after" id="simple_is_custom_pricing_label_text_after" disabled />&nbsp;Use this label before price?&nbsp;<input class="checkbox" type="checkbox" disabled name="simple_is_custom_pricing_label_after" id="simple_is_custom_pricing_label_after" /></p>
+			<p>Label:&nbsp;<input style="width:250px;" type="text" name="simple_is_custom_pricing_label_text_after" id="simple_is_custom_pricing_label_text_after" disabled />&nbsp;Use this label after price?&nbsp;<input class="checkbox" type="checkbox" disabled name="simple_is_custom_pricing_label_after" id="simple_is_custom_pricing_label_after" /></p>
 			<p>Hide this label on:&nbsp;<em>Home page</em>&nbsp;<input class="checkbox" type="checkbox" disabled />&nbsp;<em>Products page</em>&nbsp;<input class="checkbox" type="checkbox" disabled />&nbsp;<em>Single product</em>&nbsp;<input class="checkbox" type="checkbox" disabled /></p>
 			<hr />
 			</div>

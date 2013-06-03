@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce Custom Price Label
 Plugin URI: http://www.algoritmika.com/shop/wordpress-woocommerce-custom-price-label-plugin/
 Description: This plugin extends the WooCommerce e-commerce plugin by allowing to create custom price labels for products (like 'Call for Price' etc.).
-Version: 1.0.1
+Version: 1.0.2
 Author: Algoritmika Ltd.
 Author URI: http://www.algoritmika.com
 License: GPLv2 or later
@@ -19,6 +19,9 @@ if ( ! class_exists( 'woo_cpl_plugin' ) ) {
 			add_filter( 'woocommerce_price_html', array($this, 'custom_price'), 99, 2);
 			add_filter( 'woocommerce_empty_price_html', array($this, 'custom_price'), 99, 2);
 			add_filter( 'woocommerce_sale_price_html', array($this, 'custom_price'), 99, 2);
+			add_filter( 'woocommerce_variable_price_html', array($this, 'custom_price'), 99, 2);
+			add_filter( 'woocommerce_variable_empty_price_html', array($this, 'custom_price'), 99, 2);
+			add_filter( 'woocommerce_variable_sale_price_html', array($this, 'custom_price'), 99, 2);					
 			add_action( 'save_post', array($this, 'save_custom_price_labels'), 10, 2);
 			add_action( 'admin_head-post.php', array($this, 'add_my_script'), 100);			
 		}	

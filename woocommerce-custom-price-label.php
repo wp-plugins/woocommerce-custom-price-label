@@ -1,137 +1,178 @@
 <?php
 /*
 Plugin Name: WooCommerce Custom Price Label
-Plugin URI: http://www.algoritmika.com/shop/wordpress-woocommerce-custom-price-label-plugin/
-Description: This plugin extends the WooCommerce e-commerce plugin by allowing to create custom price labels for products (like 'Call for Price' etc.).
-Version: 1.0.2
-Author: Algoritmika Ltd.
+Plugin URI: http://coder.fm/items/woocommerce-custom-price-label-plugin
+Description: Create any custom price label for any WooCommerce product.
+Version: 2.0.0
+Author: Algoritmika Ltd
 Author URI: http://www.algoritmika.com
-License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Copyright: © 2015 Algoritmika Ltd.
+License: GNU General Public License v3.0
+License URI: http://www.gnu.org/licenses/gpl-3.0.html
 */
-?>
-<?php
-if ( ! class_exists( 'woo_cpl_plugin' ) ) {
-	class woo_cpl_plugin{
-		public function __construct(){
-		
-			add_action( 'add_meta_boxes', array($this, 'add_price_label_meta_box'));
-			add_filter( 'woocommerce_price_html', array($this, 'custom_price'), 99, 2);
-			add_filter( 'woocommerce_empty_price_html', array($this, 'custom_price'), 99, 2);
-			add_filter( 'woocommerce_sale_price_html', array($this, 'custom_price'), 99, 2);
-			add_filter( 'woocommerce_variable_price_html', array($this, 'custom_price'), 99, 2);
-			add_filter( 'woocommerce_variable_empty_price_html', array($this, 'custom_price'), 99, 2);
-			add_filter( 'woocommerce_variable_sale_price_html', array($this, 'custom_price'), 99, 2);					
-			add_action( 'save_post', array($this, 'save_custom_price_labels'), 10, 2);
-			add_action( 'admin_head-post.php', array($this, 'add_my_script'), 100);			
-		}	
-		
-		public function add_my_script()
-		{
-			?><script type="text/javascript">
-			function toggle_visibility(id) {
-			   var e = document.getElementById(id);
-			   if(e.style.display == 'block')
-				  e.style.display = 'none';
-			   else
-				  e.style.display = 'block';
-			}
-			</script><?php
+
+// Exit if accessed directly
+if ( ! defined( 'ABSPATH' ) ) exit;
+
+// Check if WooCommerce is active
+if ( ! in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) return;
+
+// Check if Pro is active, if so then return
+if ( in_array( 'woocommerce-custom-price-label-pro/woocommerce-custom-price-label-pro.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) return;
+
+if ( ! class_exists( 'Woocommerce_Custom_Price_Label' ) ) :
+
+/**
+ * Main Woocommerce_Custom_Price_Label Class
+ *
+ * @class Woocommerce_Custom_Price_Label
+ */
+
+final class Woocommerce_Custom_Price_Label {
+
+	/**
+	 * @var Woocommerce_Custom_Price_Label The single instance of the class
+	 */
+	protected static $_instance = null;
+
+	/**
+	 * Main Woocommerce_Custom_Price_Label Instance
+	 *
+	 * Ensures only one instance of Woocommerce_Custom_Price_Label is loaded or can be loaded.
+	 *
+	 * @static
+	 * @return Woocommerce_Custom_Price_Label - Main instance
+	 */
+	public static function instance() {
+		if ( is_null( self::$_instance ) )
+			self::$_instance = new self();
+		return self::$_instance;
+	}
+
+	/**
+	 * Woocommerce_Custom_Price_Label Constructor.
+	 * @access public
+	 */
+	public function __construct() {
+
+		$this->custom_tab_group_name = 'simple_is_custom_pricing_label';
+		$this->custom_tab_sections = array (
+			''           => __( 'Instead of the price', 'woocommerce-custom-price-label' ),
+			'_before'    => __( 'Before the price', 'woocommerce-custom-price-label' ),
+			'_between'   => __( 'Between regular and sale prices', 'woocommerce-custom-price-label' ),
+			'_after'     => __( 'After the price', 'woocommerce-custom-price-label' ),
+		);
+		$this->custom_tab_section_variations = array (
+			'_text'      => '',
+			''           => __( 'Enable', 'woocommerce-custom-price-label' ),
+			'_home'      => __( 'Hide on home page', 'woocommerce-custom-price-label' ),
+			'_products'  => __( 'Hide on products page', 'woocommerce-custom-price-label' ),
+			'_single'    => __( 'Hide on single', 'woocommerce-custom-price-label' ),
+			'_page'      => __( 'Hide on all pages', 'woocommerce-custom-price-label' ),
+			'_cart'      => __( 'Hide on cart page only', 'woocommerce-custom-price-label' ),
+			'_variable'  => __( 'Hide for main price', 'woocommerce-custom-price-label' ),
+			'_variation' => __( 'Hide for all variations', 'woocommerce-custom-price-label' ),
+		);
+
+		// Include required files
+		$this->includes();
+
+		add_action( 'init', array( $this, 'init' ), 0 );
+
+		// Settings
+		if ( is_admin() ) {
+			add_filter( 'woocommerce_get_settings_pages', array( $this, 'add_woocommerce_settings_tab' ) );
+			add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'action_links' ) );
 		}
-		
-		public function save_custom_price_labels($post_id, $post)
-		{
-			$product = get_product( $post );
-			//if ( $product->is_type('simple') || $product->is_type('external') )
-			//{
-				if ( isset( $_POST['simple_is_custom_pricing_label'] ) ) 
-					update_post_meta( $post_id, '_simple_is_custom_pricing_label', $_POST['simple_is_custom_pricing_label']  );
-				else
-					update_post_meta( $post_id, '_simple_is_custom_pricing_label', 'off'  );
-					
-				if ( isset( $_POST['simple_is_custom_pricing_label_home'] ) ) 
-					update_post_meta( $post_id, '_simple_is_custom_pricing_label_home', $_POST['simple_is_custom_pricing_label_home']  );
-				else
-					update_post_meta( $post_id, '_simple_is_custom_pricing_label_home', 'off'  );
-					
-				if ( isset( $_POST['simple_is_custom_pricing_label_products'] ) ) 
-					update_post_meta( $post_id, '_simple_is_custom_pricing_label_products', $_POST['simple_is_custom_pricing_label_products']  );
-				else
-					update_post_meta( $post_id, '_simple_is_custom_pricing_label_products', 'off'  );
-					
-				if ( isset( $_POST['simple_is_custom_pricing_label_single'] ) ) 
-					update_post_meta( $post_id, '_simple_is_custom_pricing_label_single', $_POST['simple_is_custom_pricing_label_single']  );
-				else
-					update_post_meta( $post_id, '_simple_is_custom_pricing_label_single', 'off'  );					
-					
-				if ( isset( $_POST['simple_is_custom_pricing_label_text'] ) ) 
-					update_post_meta( $post_id, '_simple_is_custom_pricing_label_text',  $_POST['simple_is_custom_pricing_label_text'] );
-			//}
-		}		
-		
-		public function add_price_label_meta_box() {
-			add_meta_box( 'woocommerce-price-label', 'Custom Price Label', array($this, 'woocommerce_price_label'), 'product', 'normal', 'high' );
-		}
-		
-		public function woocommerce_price_label()
-		{
-			$current_post_id = get_the_ID();
-			$is_label = get_post_meta($current_post_id, '_simple_is_custom_pricing_label', true);
-			$is_label_home = get_post_meta($current_post_id, '_simple_is_custom_pricing_label_home', true);
-			$is_label_products = get_post_meta($current_post_id, '_simple_is_custom_pricing_label_products', true);
-			$is_label_single = get_post_meta($current_post_id, '_simple_is_custom_pricing_label_single', true);
-			$label_text = get_post_meta($current_post_id, '_simple_is_custom_pricing_label_text', true);
-			$label_text = str_replace ('"', '&quot;', $label_text);
-			$checked = '';
-			$checked_home = '';
-			$checked_products = '';
-			$checked_single = '';
-			if ($is_label === 'on') $checked = 'checked';
-			if ($is_label_home === 'on') $checked_home = 'checked';
-			if ($is_label_products === 'on') $checked_products = 'checked';
-			if ($is_label_single === 'on') $checked_single = 'checked';
-			?>
-			<p>Label:&nbsp;<input style="width:250px;" type="text" name="simple_is_custom_pricing_label_text" id="simple_is_custom_pricing_label_text" value="<?=$label_text?>" <?php/*=$disabled*/?>/>&nbsp;Use this label instead of price?&nbsp;<input class="checkbox" type="checkbox" <?php/*onclick="toggleLabelText('simple_is_custom_pricing_label', 'simple_is_custom_pricing_label_text')"*/?> name="simple_is_custom_pricing_label" id="simple_is_custom_pricing_label" <?=$checked?> /></p>
-			<p>Hide this label on:&nbsp;<em>Home page</em>&nbsp;<input class="checkbox" type="checkbox" name="simple_is_custom_pricing_label_home" id="simple_is_custom_pricing_label_home" <?=$checked_home?> />&nbsp;<em>Products page</em>&nbsp;<input class="checkbox" type="checkbox" name="simple_is_custom_pricing_label_products" id="simple_is_custom_pricing_label_products" <?=$checked_products?> />&nbsp;<em>Single product</em>&nbsp;<input class="checkbox" type="checkbox" name="simple_is_custom_pricing_label_single" id="simple_is_custom_pricing_label_single" <?=$checked_single?> /></p>
-			<p><a href="#" onclick="toggle_visibility('custom_label_ao');">Show/Hide Advanced Options</a></p>
-			<div id="custom_label_ao" style="display:none;">
-			<p>*You will need <a href="http://www.algoritmika.com/shop/wordpress-woocommerce-custom-price-label-pro/">WooCommerce Custom Price Label Pro plugin</a> to change settings below.</p>
-			<hr />			
-			<p>Label:&nbsp;<input style="width:250px;" type="text" name="simple_is_custom_pricing_label_text_before" id="simple_is_custom_pricing_label_text_before" disabled />&nbsp;Use this label before price?&nbsp;<input class="checkbox" type="checkbox" disabled name="simple_is_custom_pricing_label_before" id="simple_is_custom_pricing_label_before" /></p>
-			<p>Hide this label on:&nbsp;<em>Home page</em>&nbsp;<input class="checkbox" type="checkbox" disabled />&nbsp;<em>Products page</em>&nbsp;<input class="checkbox" type="checkbox" disabled />&nbsp;<em>Single product</em>&nbsp;<input class="checkbox" type="checkbox" disabled /></p>
-			<hr />
-			<p>Label:&nbsp;<input style="width:250px;" type="text" name="simple_is_custom_pricing_label_text_between" id="simple_is_custom_pricing_label_text_between" disabled />&nbsp;Use this label between regular and sale price?&nbsp;<input class="checkbox" type="checkbox" disabled name="simple_is_custom_pricing_label_between" id="simple_is_custom_pricing_label_between" /></p>
-			<p>Hide this label on:&nbsp;<em>Home page</em>&nbsp;<input class="checkbox" type="checkbox" disabled />&nbsp;<em>Products page</em>&nbsp;<input class="checkbox" type="checkbox" disabled />&nbsp;<em>Single product</em>&nbsp;<input class="checkbox" type="checkbox" disabled /></p>
-			<hr />
-			<p>Label:&nbsp;<input style="width:250px;" type="text" name="simple_is_custom_pricing_label_text_after" id="simple_is_custom_pricing_label_text_after" disabled />&nbsp;Use this label after price?&nbsp;<input class="checkbox" type="checkbox" disabled name="simple_is_custom_pricing_label_after" id="simple_is_custom_pricing_label_after" /></p>
-			<p>Hide this label on:&nbsp;<em>Home page</em>&nbsp;<input class="checkbox" type="checkbox" disabled />&nbsp;<em>Products page</em>&nbsp;<input class="checkbox" type="checkbox" disabled />&nbsp;<em>Single product</em>&nbsp;<input class="checkbox" type="checkbox" disabled /></p>
-			<hr />
-			</div>
-			<?php
-		}
-		
-		public function custom_price($price, $product)
-		{
-			//if ( $product->is_type('simple') || $product->is_type('external') )
-			//{
-				$is_label = get_post_meta($product->post->ID, '_simple_is_custom_pricing_label', true);
-				$is_label_home = get_post_meta($product->post->ID, '_simple_is_custom_pricing_label_home', true);
-				$is_label_products = get_post_meta($product->post->ID, '_simple_is_custom_pricing_label_products', true);
-				$is_label_single = get_post_meta($product->post->ID, '_simple_is_custom_pricing_label_single', true);
-				$label_text = get_post_meta($product->post->ID, '_simple_is_custom_pricing_label_text', true);
-				
-				if ($is_label === 'on')
-				{				
-					if (($is_label_home == 'off') && (is_front_page())) return $label_text;
-					if (($is_label_products == 'off') && (is_archive())) return $label_text;
-					if (($is_label_single == 'off') && (is_single())) return $label_text;					
-					//return $label_text;
+	}
+
+	/**
+	 * Show action links on the plugin screen
+	 *
+	 * @param mixed $links
+	 * @return array
+	 */
+	public function action_links( $links ) {
+		return array_merge( array(
+			'<a href="' . admin_url( 'admin.php?page=wc-settings&tab=custom_price_label' ) . '">' . __( 'Settings', 'woocommerce' ) . '</a>',
+		), $links );
+	}
+
+	/**
+	 * Include required core files used in admin and on the frontend.
+	 */
+	private function includes() {
+
+		require_once( 'includes/admin/admin-functions.php' );
+
+		$settings = array();
+		$settings[] = require_once( 'includes/admin/class-wc-custom-price-label-settings-general.php' );
+		if ( is_admin() ) {
+			foreach ( $settings as $section ) {
+				foreach ( $section->get_settings() as $value ) {
+					if ( isset( $value['default'] ) && isset( $value['id'] ) ) {
+						if ( isset ( $_GET['woocommerce_custom_price_label_admin_options_reset'] ) ) {
+							require_once( ABSPATH . 'wp-includes/pluggable.php' );
+							if ( is_super_admin() ) {
+								delete_option( $value['id'] );
+							}
+						}
+						$autoload = isset( $value['autoload'] ) ? ( bool ) $value['autoload'] : true;
+						add_option( $value['id'], $value['default'], '', ( $autoload ? 'yes' : 'no' ) );
+					}
 				}
-			//}
-			return $price;
-		}		
-						
+			}
+		}
+
+		require_once( 'includes/admin/class-wc-custom-price-label-settings-per-product.php' );
+
+		require_once( 'includes/class-wc-custom-price-label.php' );
+	}
+
+	/**
+	 * Add Woocommerce settings tab to WooCommerce settings.
+	 */
+	public function add_woocommerce_settings_tab( $settings ) {
+		$settings[] = include( 'includes/admin/class-wc-settings-custom-price-label.php' );
+		return $settings;
+	}
+
+	/**
+	 * Init Woocommerce_Custom_Price_Label when WordPress initialises.
+	 */
+	public function init() {
+		// Set up localisation
+		load_plugin_textdomain( 'woocommerce-custom-price-label', false, dirname( plugin_basename( __FILE__ ) ) . '/langs/' );
+	}
+
+	/**
+	 * Get the plugin url.
+	 *
+	 * @return string
+	 */
+	public function plugin_url() {
+		return untrailingslashit( plugin_dir_url( __FILE__ ) );
+	}
+
+	/**
+	 * Get the plugin path.
+	 *
+	 * @return string
+	 */
+	public function plugin_path() {
+		return untrailingslashit( plugin_dir_path( __FILE__ ) );
 	}
 }
 
-$woo_cpl_plugin = &new woo_cpl_plugin();
+endif;
+
+/**
+ * Returns the main instance of Woocommerce_Custom_Price_Label to prevent the need to use globals.
+ *
+ * @return Woocommerce_Custom_Price_Label
+ */
+function WCCPL() {
+	return Woocommerce_Custom_Price_Label::instance();
+}
+
+WCCPL();

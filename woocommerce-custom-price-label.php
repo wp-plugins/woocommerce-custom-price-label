@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce Custom Price Label
 Plugin URI: http://coder.fm/items/woocommerce-custom-price-label-plugin
 Description: Create any custom price label for any WooCommerce product.
-Version: 2.0.0
+Version: 2.0.1
 Author: Algoritmika Ltd
 Author URI: http://www.algoritmika.com
 Copyright: © 2015 Algoritmika Ltd.

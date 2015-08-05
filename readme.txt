@@ -4,7 +4,7 @@ Donate link: http://algoritmika.com/donate/
 Tags: woocommerce,price,label,labels
 Requires at least: 3.8
 Tested up to: 4.2
-Stable tag: 2.0.0
+Stable tag: 2.0.1
 License: GNU General Public License v3.0
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -12,7 +12,7 @@ Create any custom price label for any WooCommerce product.
 
 == Description ==
 
-Create any custom price label for any WooCommerce product.
+WooCommerce Custom Price Label Plugin lets you add any price label to any WooCommerce product. Labels can be set **globally** for all products, or locally on **per product** basis.
 
 = Feedback =
 * We are open to your suggestions and feedback - Thank you for using or trying out one of our plugins!
@@ -38,6 +38,10 @@ You need [WooCommerce Custom Price Label Pro plugin](http://coder.fm/items/wooco
 1. Custom price label options are added to product's edit page.
 
 == Changelog ==
+
+= 2.0.1 - 05/08/2015 =
+* Dev - Description in readme.txt extended.
+* Dev - Description added to General settings tab.
 
 = 2.0.0 - 05/08/2015 =
 * Dev - Global labels added.

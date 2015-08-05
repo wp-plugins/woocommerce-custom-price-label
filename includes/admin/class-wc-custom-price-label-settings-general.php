@@ -2,7 +2,7 @@
 /**
  * WooCommerce Custom Price Label - General Section Settings
  *
- * @version 2.0.0
+ * @version 2.0.1
  * @since   2.0.0
  * @author  Algoritmika Ltd.
  */
@@ -35,6 +35,8 @@ class WC_Custom_Price_Label_Settings_General {
 
 	/**
 	 * get_settings.
+	 *
+	 * @version 2.0.1
 	 */
 	function get_settings() {
 
@@ -46,6 +48,7 @@ class WC_Custom_Price_Label_Settings_General {
 				'title'     => __( 'Custom Price Label Options', 'woocommerce-custom-price-label' ),
 				'type'      => 'title',
 				'id'        => 'woocommerce_custom_price_label_options',
+				'desc'      => __( 'Here you can set price labels for all products globally. To set labels on per product basis, start editing product, then fill in "Custom Price Labels Pro" metabox.', 'woocommerce-custom-price-label' ),
 			),
 
 			array(
